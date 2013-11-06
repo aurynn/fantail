@@ -1,0 +1,7 @@
+.gradle
+/local.properties
+/Fantail/build
+/.idea/workspace.xml
+/.idea
+.DS_Store
+/ADNLib
