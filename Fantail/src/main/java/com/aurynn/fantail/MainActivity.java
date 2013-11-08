@@ -151,10 +151,13 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
             Log.d("placeholder", "MAKING A NEW ONE");
             switch (position) {
                 case 0:
-                    Log.d("placeholder", "Making a streamfragment");
-                    return new StreamFragment();
+//                    Log.d("placeholder", "Making a streamfragment");
+//                    return new StreamFragment();
+                    return PlaceholderFragment.newInstance(position);
                 case 1:
-                    return PlaceholderFragment.newInstance(position + 1);
+                    Log.d("placeholder", "Making a streamfragment");
+                    return new StreamForkment();
+//                    return PlaceholderFragment.newInstance(position + 1);
             }
             return null;
         }
@@ -240,6 +243,74 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
 
             final LayoutInflater inf = inflater;
             final StreamFragment closure = this;
+
+            final View closureRoot = rootView;
+            final Handler mHandler = new Handler();
+            // This is not on the main thread?
+            client.retrievePersonalizedStream(new PostListResponseHandler() {
+                @Override
+                public void onSuccess(final PostList responseData) {
+                    // Whee!
+                    mHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            ScrollView root = (ScrollView) closureRoot;//.getActivity().findViewById(R.layout.fragment_stream);
+//                            root.removeAllViews(); // Rip everything out of the root.
+                            View progress = closure.getActivity().findViewById( R.id.progressBar );
+                            progress.setVisibility(View.GONE);
+                            LinearLayout inner = (LinearLayout) closure.getActivity().findViewById( R.id.innerLinearLayout );
+                            for (Post post : responseData ) {
+                                Log.d("response", "length: " + responseData.size() );
+                                View v = View.inflate(closure.getActivity(), R.layout.component_post, null);
+                                TextView sender = (TextView) v.findViewById(R.id.nameView);
+                                TextView contentBlock = (TextView) v.findViewById(R.id.contentView);
+                                contentBlock.setText(post.getText());
+                                sender.setText( post.getUser().getName().toString()
+                                        + "("
+                                        + post.getUser().getUsername() +
+                                        ")"
+                                );
+//                                ImageView avatar = (ImageView) v.findViewById(R.id.avatarView);
+//                                avatar.setImageBitmap( post.getUser().getAvatarImage().g );
+                                inner.addView(v);
+                            }
+                            progress.setVisibility(View.GONE);
+                            inner.setVisibility(View.VISIBLE);
+                            inner.invalidate();
+                            root.invalidate(); // Refresh-yitimes.
+                        }
+                    });
+                }
+            });
+            return rootView;
+        }
+    }
+
+    public static class StreamForkment extends Fragment {
+        public StreamForkment() {
+
+            Log.d("StreamForkment", "made");
+        }
+
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                                 Bundle savedInstanceState) {
+
+            Log.d("StreamForkment", "Trying to create view...");
+            View rootView = inflater.inflate(R.layout.fragment_stream, container, false);
+            SettingsDAO d = new SettingsDAO(getActivity());
+            d.open();
+            Settings s = d.getSettings();
+            d.close();
+
+            Log.d("StreamForkment", "Loaded our client ID of " + s.getClientId().toString());
+
+            AppDotNetClient client = new AppDotNetClient( s.getClientId() );
+            // Cool. Now, we need the ADN client we created.
+            // our default view is the spinner going SPIN SPIN SPIN
+
+            final LayoutInflater inf = inflater;
+            final StreamForkment closure = this;
 
             final View closureRoot = rootView;
             final Handler mHandler = new Handler();
