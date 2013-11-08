@@ -151,8 +151,9 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
             Log.d("placeholder", "MAKING A NEW ONE");
             switch (position) {
                 case 0:
-                    Log.d("placeholder", "Making a streamfragment");
-                    return new StreamFragment();
+//                    Log.d("placeholder", "Making a streamfragment");
+//                    return new StreamFragment();
+                    return PlaceholderFragment.newInstance(position);
                 case 1:
                     Log.d("placeholder", "Making a streamfragment");
                     return new StreamForkment();
