@@ -6,5 +6,7 @@
     <string name="title_section2">Mentions</string>
     <string name="title_section3">Section 3</string>
     <string name="action_settings">Settings</string>
-
+    <string name="action_compose">Compose New Post</string>
+    <string name="action_post">Post</string>
+    <string name="compose_new_post">Compose</string>
 </resources>

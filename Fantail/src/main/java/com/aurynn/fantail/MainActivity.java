@@ -2,6 +2,7 @@ package com.aurynn.fantail;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
@@ -23,12 +24,14 @@ import com.alwaysallthetime.adnlib.AppDotNetClient;
 import com.alwaysallthetime.adnlib.data.Post;
 import com.alwaysallthetime.adnlib.data.PostList;
 import com.alwaysallthetime.adnlib.response.PostListResponseHandler;
+import com.alwaysallthetime.adnlib.response.PostResponseHandler;
+import com.aurynn.fantail.fragments.Compose;
 import com.aurynn.fantail.model.Settings;
 import com.aurynn.fantail.sql.SettingsDAO;
 
 import java.util.Locale;
 
-public class MainActivity extends Activity implements ActionBar.TabListener {
+public class MainActivity extends Activity implements ActionBar.TabListener, Compose.ComposeListener {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -44,6 +47,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
      * The {@link ViewPager} that will host the section contents.
      */
     ViewPager mViewPager;
+    private AppDotNetClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +73,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
             @Override
             public void onPageSelected(int position) {
                 actionBar.setSelectedNavigationItem(position);
+                // We can also trigger a refresh in here.
             }
         });
 
@@ -83,6 +88,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
                             .setText(mSectionsPagerAdapter.getPageTitle(i))
                             .setTabListener(this));
         }
+        client = new AppDotNetClient( getSettings().getClientId() );
     }
 
 
@@ -102,8 +108,23 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
         switch (item.getItemId()) {
             case R.id.action_settings:
                 return true;
+            case R.id.action_compose:
+                composePost();
+                return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+    private void composePost() {
+        // We want to create our dialog fragment and switch to it.
+        android.app.FragmentManager fm = getFragmentManager();
+        // Could set some things up here to pass it forwards.
+        Compose frg = new Compose();
+        // Composition action has now started.
+        frg.setMenuVisibility(false);
+        frg.show(fm, "Dialogy!");
+    }
+    private void refresh() {
+        // Refreshes our stream.
     }
 
     public synchronized Settings getSettings() {
@@ -128,6 +149,25 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
 
     @Override
     public void onTabReselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
+    }
+
+    public void onPostMessage(DialogFragment dialog) {
+        // We have gotten usefulness to happen!
+        View v = dialog.getView();
+        Compose frg = (Compose) dialog;
+        String postText = frg.getPostMessage();
+        Log.d("rtext", postText);
+
+        Post post = new Post(postText);
+
+        this.client.createPost( post, new PostResponseHandler() {
+            @Override
+            public void onSuccess(Post responseData) {
+                // hurray!
+                // We should notify the main stream
+                Log.d("Post new post", "succeeded");
+            }
+        });
     }
 
     /**
@@ -173,8 +213,6 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
                     return getString(R.string.title_section1).toUpperCase(l);
                 case 1:
                     return getString(R.string.title_section2).toUpperCase(l);
-                case 2:
-                    return getString(R.string.title_section3).toUpperCase(l);
             }
             return null;
         }
@@ -253,17 +291,17 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
                         public void run() {
                             ScrollView root = (ScrollView) closureRoot;//.getActivity().findViewById(R.layout.fragment_stream);
 //                            root.removeAllViews(); // Rip everything out of the root.
-                            View progress = closure.getActivity().findViewById( R.id.progressBar );
+                            View progress = closure.getActivity().findViewById(R.id.progressBar);
                             progress.setVisibility(View.GONE);
-                            LinearLayout inner = (LinearLayout) closure.getActivity().findViewById( R.id.innerLinearLayout );
-                            for (Post post : responseData ) {
-                                Log.d("response", "length: " + responseData.size() );
+                            LinearLayout inner = (LinearLayout) closure.getActivity().findViewById(R.id.innerLinearLayout);
+                            for (Post post : responseData) {
+                                Log.d("response", "length: " + responseData.size());
                                 View v = View.inflate(closure.getActivity(), R.layout.component_post, null);
                                 TextView sender = (TextView) v.findViewById(R.id.nameView);
                                 TextView contentBlock = (TextView) v.findViewById(R.id.contentView);
                                 contentBlock.setText(post.getText());
-                                sender.setText( post.getUser().getName().toString()
-                                        + "("
+                                sender.setText(post.getUser().getName().toString()
+                                        + " ("
                                         + post.getUser().getUsername() +
                                         ")"
                                 );

@@ -1,4 +1,4 @@
-package com.aurynn.fantail;
+package com.aurynn.fantail.activities;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -17,6 +17,9 @@ import android.widget.TextView;
 import com.alwaysallthetime.adnlib.AppDotNetClient;
 import com.alwaysallthetime.adnlib.data.Token;
 import com.alwaysallthetime.adnlib.response.LoginResponseHandler;
+import com.aurynn.fantail.AccessKeys;
+import com.aurynn.fantail.MainActivity;
+import com.aurynn.fantail.R;
 import com.aurynn.fantail.model.Settings;
 import com.aurynn.fantail.sql.SettingsDAO;
 
@@ -117,8 +120,8 @@ public class LoginActivity extends Activity {
      * errors are presented and no actual login attempt is made.
      */
     public void attemptLogin() {
-        String clientID = "" ;
-        String pwGrantSecret = "";
+        String clientID = AccessKeys.CLIENT_ID;
+        String pwGrantSecret = AccessKeys.PASSWORD_GRANT_SECRET;
         AppDotNetClient client = new AppDotNetClient(clientID, pwGrantSecret);
         final LoginActivity closure = this;
 

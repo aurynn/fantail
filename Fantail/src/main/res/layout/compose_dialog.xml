@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/postButton"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:clickable="true"
+        android:importantForAccessibility="no"
+        android:src="@drawable/ic_action_accept" />
+
+    <EditText
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:inputType="textMultiLine"
+        android:ems="10"
+        android:id="@+id/newPostEditText"
+        android:layout_below="@+id/postButton"
+        android:layout_alignParentLeft="true"
+        android:layout_alignRight="@+id/postButton"
+        android:padding="5dp"
+        android:editable="true"
+        android:enabled="true" />
+</RelativeLayout>

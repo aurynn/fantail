@@ -4,4 +4,9 @@
         android:title="@string/action_settings"
         android:orderInCategory="100"
         android:showAsAction="never" />
+    <item android:id="@+id/action_compose"
+        android:title="@string/action_compose"
+        android:icon="@drawable/ic_action_new"
+        android:showAsAction="always"
+        />
 </menu>
