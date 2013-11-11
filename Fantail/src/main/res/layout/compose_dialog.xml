@@ -9,22 +9,25 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/postButton"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentRight="true"
         android:clickable="true"
         android:importantForAccessibility="no"
-        android:src="@drawable/ic_action_accept" />
+        android:src="@drawable/ic_action_accept"
+        android:layout_below="@+id/newPostEditText"
+        android:layout_alignParentRight="true" />
 
     <EditText
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:inputType="textMultiLine"
+        android:layout_height="wrap_content"
+        android:inputType="textMultiLine|textCapSentences"
         android:ems="10"
         android:id="@+id/newPostEditText"
-        android:layout_below="@+id/postButton"
-        android:layout_alignParentLeft="true"
-        android:layout_alignRight="@+id/postButton"
         android:padding="5dp"
         android:editable="true"
-        android:enabled="true" />
+        android:enabled="true"
+        android:lines="4"
+        android:maxLines="4"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:textIsSelectable="true"
+        android:capitalize="words" />
 </RelativeLayout>

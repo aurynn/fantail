@@ -158,57 +158,7 @@ public class LoginActivity extends Activity {
 //                }
             });
 
-//        if (mAuthTask != null) {
-//            return;
-//        }
-//
-//
-//
-//        // Reset errors.
-//        mUserView.setError(null);
-//        mPasswordView.setError(null);
-//
-//        // Store values at the time of the login attempt.
-//        mUser = mUserView.getText().toString();
-//        mPassword = mPasswordView.getText().toString();
-//
-//        boolean cancel = false;
-//        View focusView = null;
-//
-//        // Check for a valid password.
-//        if (TextUtils.isEmpty(mPassword)) {
-//            mPasswordView.setError(getString(R.string.error_field_required));
-//            focusView = mPasswordView;
-//            cancel = true;
-//        } else if (mPassword.length() < 4) {
-//            mPasswordView.setError(getString(R.string.error_invalid_password));
-//            focusView = mPasswordView;
-//            cancel = true;
-//        }
-//
-//        // Check for a valid email address.
-//        if (TextUtils.isEmpty(mUser)) {
-//            mUserView.setError(getString(R.string.error_field_required));
-//            focusView = mUserView;
-//            cancel = true;
-//        } else if (!mUser.contains("@")) {
-//            mUserView.setError(getString(R.string.error_invalid_email));
-//            focusView = mUserView;
-//            cancel = true;
-//        }
-//
-//        if (cancel) {
-//            // There was an error; don't attempt login and focus the first
-//            // form field with an error.
-//            focusView.requestFocus();
-//        } else {
-//            // Show a progress spinner, and kick off a background task to
-//            // perform the user login attempt.
-//            mLoginStatusMessageView.setText(R.string.login_progress_signing_in);
-//            showProgress(true);
-//            mAuthTask = new UserLoginTask();
-//            mAuthTask.execute((Void) null);
-//        }
+
     }
 
     /**
@@ -249,50 +199,4 @@ public class LoginActivity extends Activity {
             mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
         }
     }
-
-    /**
-     * Represents an asynchronous login/registration task used to authenticate
-     * the user.
-     */
-//    public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
-//        @Override
-//        protected Boolean doInBackground(Void... params) {
-//
-//            try {
-//                // Simulate network access.
-//                Thread.sleep(2000);
-//            } catch (InterruptedException e) {
-//                return false;
-//            }
-//
-////            for (String credential : DUMMY_CREDENTIALS) {
-////                String[] pieces = credential.split(":");
-////                if (pieces[0].equals(mUser)) {
-////                    // Account exists, return true if the password matches.
-////                    return pieces[1].equals(mPassword);
-////                }
-////            }
-//
-//            return true;
-//        }
-//
-//        @Override
-//        protected void onPostExecute(final Boolean success) {
-//            mAuthTask = null;
-//            showProgress(false);
-//
-//            if (success) {
-//                finish();
-//            } else {
-//                mPasswordView.setError(getString(R.string.error_incorrect_password));
-//                mPasswordView.requestFocus();
-//            }
-//        }
-//
-//        @Override
-//        protected void onCancelled() {
-//            mAuthTask = null;
-//            showProgress(false);
-//        }
-//    }
 }

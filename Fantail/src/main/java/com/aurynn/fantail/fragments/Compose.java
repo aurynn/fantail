@@ -1,13 +1,12 @@
 package com.aurynn.fantail.fragments;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.app.DialogFragment;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 
@@ -30,21 +29,20 @@ public class Compose extends DialogFragment {
         return textArea.getText().toString();
     }
 
-    private DialogInterface.OnClickListener positiveHandler;
+//    private DialogInterface.OnClickListener positiveHandler;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        setStyle(DialogFragment.STYLE_NO_TITLE, 0);
+        setStyle(DialogFragment.STYLE_NO_TITLE, 0);
 //        setStyle(STYLE_NO_FRAME, android.R.style.Theme_Holo_Light);
     }
 
     @Override
-    public Dialog onCreateDialog(Bundle savedInstanceState) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        LayoutInflater inflater = getActivity().getLayoutInflater();
-        View v = inflater.inflate(R.layout.compose_dialog, null);
-        ImageButton button = (ImageButton) v.findViewById(R.id.postButton);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View v = inflater.inflate(R.layout.compose_dialog, container);
         textArea = (EditText) v.findViewById(R.id.newPostEditText);
+        ImageButton button = (ImageButton) v.findViewById(R.id.postButton);
         button.setOnClickListener( new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -52,9 +50,21 @@ public class Compose extends DialogFragment {
                 dismiss();
             }
         });
-        builder.setView(v);
-        return builder.create();
+        getDialog().getWindow().setSoftInputMode(
+                WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        return v;
     }
+//    @Override
+//    public Dialog onCreateDialog(Bundle savedInstanceState) {
+//        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+//        LayoutInflater inflater = getActivity().getLayoutInflater();
+//        View v = inflater.inflate(R.layout.compose_dialog, null);
+//
+//
+//        builder.setView(v);
+//
+//        return builder.create();
+//    }
 
     // Use this instance of the interface to deliver action events
     ComposeListener mListener;

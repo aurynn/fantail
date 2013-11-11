@@ -121,7 +121,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Com
         Compose frg = new Compose();
         // Composition action has now started.
         frg.setMenuVisibility(false);
-        frg.show(fm, "Dialogy!");
+        frg.show(fm, "newPost");
     }
     private void refresh() {
         // Refreshes our stream.
