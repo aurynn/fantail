@@ -42,6 +42,8 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Com
      * {@link android.support.v13.app.FragmentStatePagerAdapter}.
      */
     SectionsPagerAdapter mSectionsPagerAdapter;
+    private Handler stream;
+    private Handler mentions;
 
     /**
      * The {@link ViewPager} that will host the section contents.
@@ -89,6 +91,10 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Com
                             .setTabListener(this));
         }
         client = new AppDotNetClient( getSettings().getClientId() );
+    }
+
+    public AppDotNetClient getClient() {
+        return client;
     }
 
 
@@ -192,9 +198,9 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Com
             switch (position) {
                 case 0:
                     Log.d("placeholder", "Making a streamfragment");
-                    return new StreamFragment();
+                    return new StreamFragment(StreamFragment.PERSONAL_STREAM);
                 case 1:
-                    return PlaceholderFragment.newInstance(position + 1);
+                    return new StreamFragment(StreamFragment.MENTIONS);
             }
             return null;
         }
@@ -218,46 +224,80 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Com
         }
     }
 
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        private static final String ARG_SECTION_NUMBER = "section_number";
-
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        public PlaceholderFragment() {
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-            textView.setText(Integer.toString(getArguments().getInt(ARG_SECTION_NUMBER)));
-            return rootView;
-        }
-    }
-
     public static class StreamFragment extends Fragment {
-        public StreamFragment() {
 
+        public static final int PERSONAL_STREAM = 1;
+        public static final int MENTIONS = 2;
+        public static final int MESSAGES = 3;
+
+        private int mode;
+
+        public StreamFragment(int mode) {
+            this.mode = mode;
             Log.d("StreamFragment", "made");
         }
+
+        private Handler action;
+
+        public void refresh() {
+            // Handles refreshing the stream and rendering it to ourself.
+            final StreamFragment closure = this;
+
+            MainActivity activity = (MainActivity) getActivity();
+            switch (mode) {
+                case PERSONAL_STREAM:
+                    activity.getClient().retrievePersonalizedStream(responseHandler);
+                    return;
+                case MENTIONS:
+                    activity.getClient().retrievePostsMentioningCurrentUser(responseHandler);
+//                case MESSAGES:
+//                    activity.getClient().retrieveCurrentUserMessages();
+            }
+
+
+        }
+        private PostListResponseHandler responseHandler = new PostListResponseHandler() {
+            @Override
+            public void onSuccess(final PostList responseData) {
+                // This happens on the background thread.
+                // We are using a handler to pass back to the UI thread in order to update the
+                // page and provide refresh powers.
+                // In order to do this, we need an thing that can be passed the resultset.
+                // Do we just pass the resultset forward via a message?
+                action.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        ScrollView root = (ScrollView) getView();//.getActivity().findViewById(R.layout.fragment_stream);
+//                            root.removeAllViews(); // Rip everything out of the root.
+                        View progress = root.findViewById(R.id.progressBar);
+                        progress.setVisibility(View.GONE);
+                        LinearLayout inner = (LinearLayout) getActivity().findViewById(R.id.innerLinearLayout);
+                        // This code must be abstracted away as part of the refresh/update system.
+
+                        for (Post post : responseData) {
+                            Log.d("response", "length: " + responseData.size());
+                            View v = View.inflate(getActivity(), R.layout.component_post, null);
+                            TextView sender = (TextView) v.findViewById(R.id.nameView);
+                            TextView contentBlock = (TextView) v.findViewById(R.id.contentView);
+                            contentBlock.setText(post.getText());
+                            sender.setText(post.getUser().getName().toString()
+                                    + " ("
+                                    + post.getUser().getUsername() +
+                                    ")"
+                            );
+//                                ImageView avatar = (ImageView) v.findViewById(R.id.avatarView);
+//                                avatar.setImageBitmap( post.getUser().getAvatarImage().g );
+                            inner.addView(v);
+                        }
+                        progress.setVisibility(View.GONE);
+                        inner.setVisibility(View.VISIBLE);
+                        inner.invalidate();
+                        root.invalidate(); // Refresh-yitimes
+                    }
+                });
+            }
+        };
+
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -265,58 +305,10 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Com
 
             Log.d("StreamFragment", "Trying to create view...");
             View rootView = inflater.inflate(R.layout.fragment_stream, container, false);
-            SettingsDAO d = new SettingsDAO(getActivity());
-            d.open();
-            Settings s = d.getSettings();
-            d.close();
 
-            Log.d("StreamFragment", "Loaded our client ID of " + s.getClientId().toString());
+            action = new Handler();
+            refresh();
 
-            AppDotNetClient client = new AppDotNetClient( s.getClientId() );
-            // Cool. Now, we need the ADN client we created.
-            // our default view is the spinner going SPIN SPIN SPIN
-
-            final LayoutInflater inf = inflater;
-            final StreamFragment closure = this;
-
-            final View closureRoot = rootView;
-            final Handler mHandler = new Handler();
-            // This is not on the main thread?
-            client.retrievePersonalizedStream(new PostListResponseHandler() {
-                @Override
-                public void onSuccess(final PostList responseData) {
-                    // Whee!
-                    mHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            ScrollView root = (ScrollView) closureRoot;//.getActivity().findViewById(R.layout.fragment_stream);
-//                            root.removeAllViews(); // Rip everything out of the root.
-                            View progress = closure.getActivity().findViewById(R.id.progressBar);
-                            progress.setVisibility(View.GONE);
-                            LinearLayout inner = (LinearLayout) closure.getActivity().findViewById(R.id.innerLinearLayout);
-                            for (Post post : responseData) {
-                                Log.d("response", "length: " + responseData.size());
-                                View v = View.inflate(closure.getActivity(), R.layout.component_post, null);
-                                TextView sender = (TextView) v.findViewById(R.id.nameView);
-                                TextView contentBlock = (TextView) v.findViewById(R.id.contentView);
-                                contentBlock.setText(post.getText());
-                                sender.setText(post.getUser().getName().toString()
-                                        + " ("
-                                        + post.getUser().getUsername() +
-                                        ")"
-                                );
-//                                ImageView avatar = (ImageView) v.findViewById(R.id.avatarView);
-//                                avatar.setImageBitmap( post.getUser().getAvatarImage().g );
-                                inner.addView(v);
-                            }
-                            progress.setVisibility(View.GONE);
-                            inner.setVisibility(View.VISIBLE);
-                            inner.invalidate();
-                            root.invalidate(); // Refresh-yitimes.
-                        }
-                    });
-                }
-            });
             return rootView;
         }
     }
