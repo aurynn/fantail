@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/ADNLib/ADNLib.iml" filepath="$PROJECT_DIR$/ADNLib/ADNLib.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ADNLib/ADNLibModule/ADNLibModule.iml" filepath="$PROJECT_DIR$/ADNLib/ADNLibModule/ADNLibModule.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Fantail/Fantail.iml" filepath="$PROJECT_DIR$/Fantail/Fantail.iml" />
+      <module fileurl="file://$PROJECT_DIR$/FantailProject.iml" filepath="$PROJECT_DIR$/FantailProject.iml" />
+    </modules>
+  </component>
+</project>
+

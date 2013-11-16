@@ -42,8 +42,6 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Com
      * {@link android.support.v13.app.FragmentStatePagerAdapter}.
      */
     SectionsPagerAdapter mSectionsPagerAdapter;
-    private Handler stream;
-    private Handler mentions;
 
     /**
      * The {@link ViewPager} that will host the section contents.
@@ -75,7 +73,16 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Com
             @Override
             public void onPageSelected(int position) {
                 actionBar.setSelectedNavigationItem(position);
-                // We can also trigger a refresh in here.
+                // We can also trigger a refresh in here?
+                Log.d("Change page", "happening");
+                // Yes, this is when we refresh
+                StreamFragment fm = (StreamFragment) mSectionsPagerAdapter.getItem(position);
+                // if it's not been refreshed before
+                // refresh it, but only when it's been switched to for the first time.
+                if (!fm.hasLoaded()) {
+                    fm.refresh();
+                }
+                mSectionsPagerAdapter.setCurrentPosition(position);
             }
         });
 
@@ -117,6 +124,11 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Com
             case R.id.action_compose:
                 composePost();
                 return true;
+            case R.id.action_refresh:
+                StreamFragment fm = (StreamFragment) mSectionsPagerAdapter.getItem(
+                        mSectionsPagerAdapter.getCurrentPosition()
+                );
+                fm.refresh();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -128,9 +140,6 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Com
         // Composition action has now started.
         frg.setMenuVisibility(false);
         frg.show(fm, "newPost");
-    }
-    private void refresh() {
-        // Refreshes our stream.
     }
 
     public synchronized Settings getSettings() {
@@ -186,6 +195,18 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Com
             super(fm);
         }
 
+        private StreamFragment myStream;
+        private StreamFragment mentions;
+        private int currentPosition = 0;
+
+        public void setCurrentPosition(int position) {
+            currentPosition = position;
+        }
+
+        public int getCurrentPosition() {
+            return currentPosition;
+        }
+
         @Override
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
@@ -195,12 +216,20 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Com
 //            }
             // Is this always called?
             Log.d("placeholder", "MAKING A NEW ONE");
+            StreamFragment fm;
             switch (position) {
                 case 0:
                     Log.d("placeholder", "Making a streamfragment");
-                    return new StreamFragment(StreamFragment.PERSONAL_STREAM);
+                    if (myStream == null) {
+                        myStream = new StreamFragment(StreamFragment.PERSONAL_STREAM);
+                    }
+//                    myStream.refresh();
+                    return myStream;
                 case 1:
-                    return new StreamFragment(StreamFragment.MENTIONS);
+                    if (mentions == null) {
+                        mentions = new StreamFragment(StreamFragment.MENTIONS);
+                    }
+                    return mentions;
             }
             return null;
         }
@@ -226,9 +255,10 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Com
 
     public static class StreamFragment extends Fragment {
 
-        public static final int PERSONAL_STREAM = 1;
-        public static final int MENTIONS = 2;
-        public static final int MESSAGES = 3;
+        public static final int PERSONAL_STREAM = 0;
+        public static final int MENTIONS = 1;
+        public static final int MESSAGES = 2;
+        public static boolean hasLoaded = false;
 
         private int mode;
 
@@ -237,11 +267,22 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Com
             Log.d("StreamFragment", "made");
         }
 
+        public boolean hasLoaded() {
+            return hasLoaded;
+        }
+        @Override
+        public void onResume() {
+            super.onResume();
+            refresh();
+        }
+
         private Handler action;
 
         public void refresh() {
-            // Handles refreshing the stream and rendering it to ourself.
-            final StreamFragment closure = this;
+            // Handles refreshing the stream and rendering it to ourselves.
+            // Since we're trying to refresh from the very beginning, and this is referencing
+            // things that don't exist just after spawning
+            // We just cache it.
 
             MainActivity activity = (MainActivity) getActivity();
             switch (mode) {
@@ -253,9 +294,8 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Com
 //                case MESSAGES:
 //                    activity.getClient().retrieveCurrentUserMessages();
             }
-
-
         }
+
         private PostListResponseHandler responseHandler = new PostListResponseHandler() {
             @Override
             public void onSuccess(final PostList responseData) {
@@ -267,15 +307,19 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Com
                 action.post(new Runnable() {
                     @Override
                     public void run() {
-                        ScrollView root = (ScrollView) getView();//.getActivity().findViewById(R.layout.fragment_stream);
-//                            root.removeAllViews(); // Rip everything out of the root.
+                        // This is clearly getting the wrong view.
+                        // Maybe we're not supposed to get it by id?
+                        // How am I supposed to get the view associated with this fragment?
+                        ScrollView root = (ScrollView) getView();
+//                        ScrollView root = (ScrollView) myView;
+                        // we assume that here, root is the view for this particular page.
                         View progress = root.findViewById(R.id.progressBar);
                         progress.setVisibility(View.GONE);
-                        LinearLayout inner = (LinearLayout) getActivity().findViewById(R.id.innerLinearLayout);
+                        LinearLayout inner = (LinearLayout) root.findViewById(R.id.innerLinearLayout);
                         // This code must be abstracted away as part of the refresh/update system.
+                        Log.d("response", "length: " + responseData.size());
 
                         for (Post post : responseData) {
-                            Log.d("response", "length: " + responseData.size());
                             View v = View.inflate(getActivity(), R.layout.component_post, null);
                             TextView sender = (TextView) v.findViewById(R.id.nameView);
                             TextView contentBlock = (TextView) v.findViewById(R.id.contentView);
@@ -285,14 +329,13 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Com
                                     + post.getUser().getUsername() +
                                     ")"
                             );
-//                                ImageView avatar = (ImageView) v.findViewById(R.id.avatarView);
-//                                avatar.setImageBitmap( post.getUser().getAvatarImage().g );
                             inner.addView(v);
                         }
-                        progress.setVisibility(View.GONE);
+
                         inner.setVisibility(View.VISIBLE);
                         inner.invalidate();
                         root.invalidate(); // Refresh-yitimes
+                        hasLoaded = true;
                     }
                 });
             }
@@ -305,12 +348,8 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Com
 
             Log.d("StreamFragment", "Trying to create view...");
             View rootView = inflater.inflate(R.layout.fragment_stream, container, false);
-
             action = new Handler();
-            refresh();
-
             return rootView;
         }
     }
-
 }
