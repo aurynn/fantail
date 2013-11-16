@@ -19,3 +19,7 @@ Requires Fantail/src/main/java/com/aurynn/fantail/AccessKeys.java of the form:
 	    public static final String CLIENT_ID = "";
 	    public static final String PASSWORD_GRANT_SECRET = "";
 	}
+
+## Images
+
+All icons currently come from the Android Design Icons pack, and are used under their license. They are not being relicenced.

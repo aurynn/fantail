@@ -21,6 +21,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.alwaysallthetime.adnlib.AppDotNetClient;
+import com.alwaysallthetime.adnlib.QueryParameters;
 import com.alwaysallthetime.adnlib.data.Post;
 import com.alwaysallthetime.adnlib.data.PostList;
 import com.alwaysallthetime.adnlib.response.PostListResponseHandler;
@@ -97,7 +98,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Com
                             .setText(mSectionsPagerAdapter.getPageTitle(i))
                             .setTabListener(this));
         }
-        client = new AppDotNetClient( getSettings().getClientId() );
+        client = new AppDotNetClient( (String) getSettings().getClientId() );
     }
 
     public AppDotNetClient getClient() {
@@ -260,6 +261,9 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Com
         public static final int MESSAGES = 2;
         public static boolean hasLoaded = false;
 
+        private String lastMaxId;
+        private String lastMinId;
+
         private int mode;
 
         public StreamFragment(int mode) {
@@ -287,10 +291,25 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Com
             MainActivity activity = (MainActivity) getActivity();
             switch (mode) {
                 case PERSONAL_STREAM:
-                    activity.getClient().retrievePersonalizedStream(responseHandler);
+                    if (lastMaxId != null) {
+                        QueryParameters params = new QueryParameters();
+                        params.put("since_id", lastMaxId);
+                        activity.getClient().retrievePersonalizedStream(params, responseHandler);
+                    }
+                    else {
+                        activity.getClient().retrievePersonalizedStream(responseHandler);
+                    }
                     return;
                 case MENTIONS:
-                    activity.getClient().retrievePostsMentioningCurrentUser(responseHandler);
+                    if (lastMaxId != null) {
+                        QueryParameters params = new QueryParameters();
+                        params.put("since_id", lastMaxId);
+                        activity.getClient().retrievePostsMentioningCurrentUser(params, responseHandler);
+                    }
+                    else {
+                        activity.getClient().retrievePostsMentioningCurrentUser(responseHandler);
+                    }
+
 //                case MESSAGES:
 //                    activity.getClient().retrieveCurrentUserMessages();
             }
@@ -319,6 +338,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Com
                         // This code must be abstracted away as part of the refresh/update system.
                         Log.d("response", "length: " + responseData.size());
 
+                        int i = 0;
                         for (Post post : responseData) {
                             View v = View.inflate(getActivity(), R.layout.component_post, null);
                             TextView sender = (TextView) v.findViewById(R.id.nameView);
@@ -329,9 +349,12 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Com
                                     + post.getUser().getUsername() +
                                     ")"
                             );
-                            inner.addView(v);
+                            inner.addView(v, i); // add things at the top?
+                            i++;
+//                            inner.addView(v);
                         }
-
+                        // Zeroth value.
+                        lastMaxId = responseData.get(0).getId();
                         inner.setVisibility(View.VISIBLE);
                         inner.invalidate();
                         root.invalidate(); // Refresh-yitimes
