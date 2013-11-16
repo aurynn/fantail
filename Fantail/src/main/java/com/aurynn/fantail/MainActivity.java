@@ -182,6 +182,8 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Com
                 // hurray!
                 // We should notify the main stream
                 Log.d("Post new post", "succeeded");
+                // We should spawn a toast here
+
             }
         });
     }
@@ -329,6 +331,9 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Com
                         // This is clearly getting the wrong view.
                         // Maybe we're not supposed to get it by id?
                         // How am I supposed to get the view associated with this fragment?
+                        if (responseData.size() == 0) {
+                            return; // Just get out immediately.
+                        }
                         ScrollView root = (ScrollView) getView();
 //                        ScrollView root = (ScrollView) myView;
                         // we assume that here, root is the view for this particular page.
