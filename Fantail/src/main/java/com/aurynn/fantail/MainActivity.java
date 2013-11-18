@@ -19,6 +19,7 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.alwaysallthetime.adnlib.AppDotNetClient;
 import com.alwaysallthetime.adnlib.QueryParameters;
@@ -49,6 +50,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Com
      */
     ViewPager mViewPager;
     private AppDotNetClient client;
+    private Handler mainThread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,6 +101,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Com
                             .setTabListener(this));
         }
         client = new AppDotNetClient( (String) getSettings().getClientId() );
+        mainThread = new Handler();
     }
 
     public AppDotNetClient getClient() {
@@ -183,7 +186,17 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Com
                 // We should notify the main stream
                 Log.d("Post new post", "succeeded");
                 // We should spawn a toast here
-
+                mainThread.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        int duration = Toast.LENGTH_LONG;
+                        Toast toast = Toast.makeText(getApplicationContext(), "Post succeeded!", Toast.LENGTH_LONG);
+                        toast.show();
+                        // Trigger a refresh of the main stream, too, to add our new message.
+                        StreamFragment fm = (StreamFragment) mSectionsPagerAdapter.getItem( StreamFragment.PERSONAL_STREAM );
+                        fm.refresh();
+                    }
+                });
             }
         });
     }
